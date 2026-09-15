@@ -191,4 +191,108 @@ public class CRUDUsuario {
             }
         }
     }
+
+    // --- Reportes parametrizados (mínimo 2 requeridos por la actividad) ---
+
+    /** Reporte 1: usuarios filtrados por rol. */
+    public static Usuario[] usuariosPorRol(String rol) throws Exception {
+        ConexionBaseDatos baseDatos = null;
+        String sql = "SELECT * FROM usuario WHERE rol = ?";
+        try {
+            baseDatos = new ConexionBaseDatos();
+            PreparedStatement s = baseDatos.crearSentencia(sql);
+            s.setString(1, rol);
+            ResultSet r = baseDatos.consultar(s);
+            r.last();
+            Usuario[] listado = new Usuario[r.getRow()];
+            r.beforeFirst();
+            int contador = 0;
+            while (r.next()) {
+                Usuario alguien = new Usuario();
+                alguien.setId(r.getInt("id_usuario"));
+                alguien.setClave(r.getString("clave"));
+                alguien.setNombre(r.getString("nombre"));
+                alguien.setRol(r.getString("rol"));
+                alguien.setEmail(r.getString("email"));
+                listado[contador] = alguien;
+                contador++;
+            }
+            return listado;
+        } finally {
+            if (baseDatos != null) baseDatos.desconectar();
+        }
+    }
+
+    /** Reporte 2: usuarios buscados por nombre parcial (LIKE). */
+    public static Usuario[] usuariosPorNombre(String nombre) throws Exception {
+        ConexionBaseDatos baseDatos = null;
+        String sql = "SELECT * FROM usuario WHERE nombre LIKE ?";
+        try {
+            baseDatos = new ConexionBaseDatos();
+            PreparedStatement s = baseDatos.crearSentencia(sql);
+            s.setString(1, "%" + nombre + "%");
+            ResultSet r = baseDatos.consultar(s);
+            r.last();
+            Usuario[] listado = new Usuario[r.getRow()];
+            r.beforeFirst();
+            int contador = 0;
+            while (r.next()) {
+                Usuario alguien = new Usuario();
+                alguien.setId(r.getInt("id_usuario"));
+                alguien.setClave(r.getString("clave"));
+                alguien.setNombre(r.getString("nombre"));
+                alguien.setRol(r.getString("rol"));
+                alguien.setEmail(r.getString("email"));
+                listado[contador] = alguien;
+                contador++;
+            }
+            return listado;
+        } finally {
+            if (baseDatos != null) baseDatos.desconectar();
+        }
+    }
+
+    /**
+     * Restablece la contraseña de un usuario a partir de su correo registrado,
+     * actualiza la base de datos y envía la nueva clave por correo electrónico.
+     */
+    public static String recuperarClavePorEmail(String email) throws Exception {
+        if (email == null || email.trim().isEmpty()) {
+            throw new Exception("El correo electrónico es obligatorio");
+        }
+        ConexionBaseDatos baseDatos = null;
+        try {
+            baseDatos = new ConexionBaseDatos();
+            // 1. Verificar si el usuario existe y obtener su nombre
+            String sqlSelect = "SELECT id_usuario, nombre FROM usuario WHERE email = ?";
+            PreparedStatement stmtSelect = baseDatos.crearSentencia(sqlSelect);
+            stmtSelect.setString(1, email);
+            ResultSet r = baseDatos.consultar(stmtSelect);
+
+            if (!r.next()) {
+                throw new Exception("El correo ingresado no se encuentra registrado en el sistema.");
+            }
+
+            String nombre = r.getString("nombre");
+
+            // 2. Generar clave temporal de 6 dígitos
+            String claveTemporal = "temp" + (1000 + (int)(Math.random() * 9000));
+
+            // 3. Actualizar la clave en la base de datos
+            String sqlUpdate = "UPDATE usuario SET clave = ? WHERE email = ?";
+            PreparedStatement stmtUpdate = baseDatos.crearSentencia(sqlUpdate);
+            stmtUpdate.setString(1, claveTemporal);
+            stmtUpdate.setString(2, email);
+            baseDatos.actualizar(stmtUpdate);
+
+            // 4. Notificar vía ServicioEmail
+            ServicioEmail.enviarClaveTemporal(email, nombre, claveTemporal);
+
+            return "Se ha generado tu nueva clave temporal: <b>" + claveTemporal + "</b> (Enviada a: " + email + ").";
+        } finally {
+            if (baseDatos != null) {
+                baseDatos.desconectar();
+            }
+        }
+    }
 }

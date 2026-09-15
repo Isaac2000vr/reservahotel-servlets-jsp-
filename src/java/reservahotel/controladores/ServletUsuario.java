@@ -27,7 +27,7 @@ public class ServletUsuario extends HttpServlet {
                 crudAlguien.getAlguien().setRol(request.getParameter("rol"));
                 crudAlguien.getAlguien().setEmail(request.getParameter("email"));
                 crudAlguien.agregarUsuario();
-                response.sendRedirect("web/usuario/agregar.jsp?mensaje=Usuario Agregado al Sistema");
+                response.sendRedirect("usuario/agregar.jsp?mensaje=Usuario Agregado al Sistema");
 
             } else if (accion.equals("buscar")) {
                 Usuario alguien = CRUDUsuario.consultarUsuario(
@@ -35,11 +35,11 @@ public class ServletUsuario extends HttpServlet {
                 request.getSession().setAttribute("usuario.buscar", alguien);
                 String redireccion = request.getParameter("redir");
                 if (redireccion.equals("borrar")) {
-                    response.sendRedirect("web/usuario/eliminar.jsp");
+                    response.sendRedirect("usuario/eliminar.jsp");
                 } else if (redireccion.equals("modificar")) {
-                    response.sendRedirect("web/usuario/modificar.jsp");
+                    response.sendRedirect("usuario/modificar.jsp");
                 } else {
-                    response.sendRedirect("web/usuario/buscar.jsp");
+                    response.sendRedirect("usuario/buscar.jsp");
                 }
 
             } else if (accion.equals("modificar")) {
@@ -50,18 +50,18 @@ public class ServletUsuario extends HttpServlet {
                 crudAlguien.getAlguien().setRol(request.getParameter("rol"));
                 crudAlguien.getAlguien().setEmail(request.getParameter("email"));
                 crudAlguien.modificarUsuario();
-                response.sendRedirect("web/usuario/modificar.jsp?mensaje=Usuario Modificado en el Sistema");
+                response.sendRedirect("usuario/modificar.jsp?mensaje=Usuario Modificado en el Sistema");
 
             } else if (accion.equals("borrar")) {
                 CRUDUsuario crudAlguien = new CRUDUsuario();
                 crudAlguien.getAlguien().setId(Integer.parseInt(request.getParameter("id")));
                 crudAlguien.eliminarUsuario();
-                response.sendRedirect("web/usuario/eliminar.jsp?mensaje=Usuario Eliminado del Sistema");
+                response.sendRedirect("usuario/eliminar.jsp?mensaje=Usuario Eliminado del Sistema");
 
             } else if (accion.equals("listartodo")) {
                 Usuario[] listado = CRUDUsuario.listarTodosLosUsuarios();
                 request.getSession().setAttribute("usuario.listar", listado);
-                response.sendRedirect("web/usuario/listar.jsp");
+                response.sendRedirect("usuario/listar.jsp");
 
             } else if (accion.equals("login")) {
                 Usuario alguien = CRUDUsuario.iniciarSesion(
@@ -74,11 +74,25 @@ public class ServletUsuario extends HttpServlet {
                 request.getSession().invalidate();
                 response.sendRedirect("index.jsp?mensaje=Sesion Finalizada");
 
+            } else if (accion.equals("recuperar")) {
+                String mensaje = CRUDUsuario.recuperarClavePorEmail(request.getParameter("email"));
+                response.sendRedirect("usuario/recuperar.jsp?mensaje=" + java.net.URLEncoder.encode(mensaje, "UTF-8"));
+
+            } else if (accion.equals("reportePorRol")) {
+                Usuario[] listado = CRUDUsuario.usuariosPorRol(request.getParameter("rol"));
+                request.getSession().setAttribute("usuario.reporte", listado);
+                response.sendRedirect("usuario/listar.jsp");
+
+            } else if (accion.equals("reportePorNombre")) {
+                Usuario[] listado = CRUDUsuario.usuariosPorNombre(request.getParameter("nombre"));
+                request.getSession().setAttribute("usuario.reporte", listado);
+                response.sendRedirect("usuario/listar.jsp");
+
             } else {
-                response.sendRedirect("web/mensaje.jsp?mensaje=La Accion Solicitada no es Correcta");
+                response.sendRedirect("mensaje.jsp?mensaje=La Accion Solicitada no es Correcta");
             }
         } catch (Exception error) {
-            response.sendRedirect("web/mensaje.jsp?mensaje=" + error.getMessage());
+            response.sendRedirect("mensaje.jsp?mensaje=" + error.getMessage());
         } finally {
             out.close();
         }

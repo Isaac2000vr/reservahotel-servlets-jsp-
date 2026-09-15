@@ -82,8 +82,10 @@ public class ConexionBaseDatos {
     }
 
     public PreparedStatement crearSentencia(String sql) throws Exception {
-        try {
-            return conexion.prepareStatement(sql);
+    try {
+        return conexion.prepareStatement(sql,
+                ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
         } catch (SQLException ex) {
             throw new SQLException("Error de Sentencia DB \nCodigo:"
                     + ex.getErrorCode() + " Explicacion:" + ex.getMessage());

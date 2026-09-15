@@ -1,17 +1,17 @@
-<%-- 
-    Document   : mensaje
-    Created on : 14/09/2026, 3:18:11 p. m.
-    Author     : vasqu
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Mensaje del Sistema</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <center>
+            <h1>
+                <%= request.getParameter("mensaje")%>
+            </h1>
+            <hr/>
+            <a href="index.jsp">&lt;&lt;&lt; Volver :::</a>
+        </center>
     </body>
 </html>

@@ -5,9 +5,8 @@
         getServletContext().getRequestDispatcher("/usuario/login.jsp").forward(request, response);
     }
     Usuario[] listado = (Usuario[]) session.getAttribute("usuario.listar");
-    String mensaje = null;
-    if (listado == null || listado.length <= 0) {
-        mensaje = "Resultado: 0 Usuarios encontrados en el Sistema";
+    if (listado == null) {
+        listado = (Usuario[]) session.getAttribute("usuario.reporte");
     }
 %>
 <!DOCTYPE html>
@@ -19,9 +18,29 @@
     <body>
         <center>
             <h1>Todos los Usuarios Agregados al Sistema</h1>
-            <% if (mensaje != null) {
-                out.print(mensaje);
-            } else { %>
+
+            <h3>Reporte 1: Usuarios por rol</h3>
+            <form action="../usuario" method="get">
+                <input type="hidden" name="accion" value="reportePorRol"/>
+                Rol: 
+                <select name="rol">
+                    <option value="admin">admin</option>
+                    <option value="empleado">empleado</option>
+                </select>
+                <input type="submit" value="Generar Reporte"/>
+            </form>
+
+            <h3>Reporte 2: Usuarios por nombre</h3>
+            <form action="../usuario" method="get">
+                <input type="hidden" name="accion" value="reportePorNombre"/>
+                Nombre: <input type="text" name="nombre"/>
+                <input type="submit" value="Generar Reporte"/>
+            </form>
+            <hr/>
+
+            <% if (listado == null || listado.length <= 0) { %>
+            <p>Resultado: 0 Usuarios encontrados en el Sistema</p>
+            <% } else { %>
             <table border="1">
                 <thead>
                     <tr>
@@ -45,6 +64,8 @@
             </table>
             <% } %>
             <hr/>
+            <% session.setAttribute("usuario.listar", null);
+               session.setAttribute("usuario.reporte", null); %>
             <a href="../index.jsp">&lt;&lt;: VOLVER AL MENU</a>
         </center>
     </body>
