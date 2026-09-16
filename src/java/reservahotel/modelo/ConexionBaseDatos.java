@@ -6,16 +6,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
+/**
+ * Clase que permite interactuar con la biblioteca de clases Driver-MySQL-JDBC.
+ * Lee los datos de conexión desde variables de entorno (para producción),
+ * con valores por defecto de desarrollo local (XAMPP) si no existen.
+ */
 public class ConexionBaseDatos {
-    // atributos
+
+    // atributos, con fallback a los valores de desarrollo local (XAMPP)
     protected String driver = "com.mysql.cj.jdbc.Driver";
-    protected String nombreIPServidorBD = "localhost";
+    protected String nombreIPServidorBD = obtenerVariable("DB_HOST", "localhost");
     protected String url = "jdbc:mysql://";
-    protected int puertoServidorBD = 3306;
-    protected String usuarioBD = "root";
-    protected String passwordUsuarioBD = "";
-    protected String nombreBD = "reservahotel_db";
+    protected int puertoServidorBD = Integer.parseInt(obtenerVariable("DB_PORT", "3306"));
+    protected String usuarioBD = obtenerVariable("DB_USER", "root");
+    protected String passwordUsuarioBD = obtenerVariable("DB_PASSWORD", "");
+    protected String nombreBD = obtenerVariable("DB_NAME", "reservahotel_db");
 
     private Connection conexion;
     private PreparedStatement sentencia;
@@ -38,6 +43,15 @@ public class ConexionBaseDatos {
         this.passwordUsuarioBD = passwordUsuarioBD;
         this.nombreBD = nombreBD;
         this.conectar();
+    }
+
+    /**
+     * Lee una variable de entorno; si no existe o está vacía, devuelve el
+     * valor por defecto (usado para desarrollo local con XAMPP).
+     */
+    private static String obtenerVariable(String nombre, String valorPorDefecto) {
+        String valor = System.getenv(nombre);
+        return (valor != null && !valor.isEmpty()) ? valor : valorPorDefecto;
     }
 
     // operaciones sobre BD
@@ -82,10 +96,10 @@ public class ConexionBaseDatos {
     }
 
     public PreparedStatement crearSentencia(String sql) throws Exception {
-    try {
-        return conexion.prepareStatement(sql,
-                ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_READ_ONLY);
+        try {
+            return conexion.prepareStatement(sql,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
         } catch (SQLException ex) {
             throw new SQLException("Error de Sentencia DB \nCodigo:"
                     + ex.getErrorCode() + " Explicacion:" + ex.getMessage());
