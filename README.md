@@ -1,51 +1,41 @@
-# Sistema de Reserva de Hotel — Servlets / JSP + JDBC
+# Sistema de Reserva de Hotel (Servlets/JSP + JDBC)
 
-Este repositorio contiene la implementación completa de la **Unidad 1** para la asignatura de **Desarrollo Web**. Corresponde al **Ejercicio N.° 31 (ReservaHotel)**, desarrollado bajo la arquitectura clásica **JSP + Java Servlets + JDBC manual** (sin frameworks MVC externos ni ORMs).
+Proyecto de la actividad de Servlets/JSP para la asignatura Desarrollo Web (Unidad 1). Me correspondió el ejercicio N.º 31: **ReservaHotel**.
 
----
+La aplicación está hecha con Servlet/JSP puro y acceso a datos manual con JDBC (sin frameworks MVC ni ORM), siguiendo la guía "CRUD JSP + JDBC" proporcionada por el docente.
 
-## 📋 Información de la Actividad
+## Datos de la actividad
 
-- **Asignatura:** Desarrollo Web — Unidad 1
-- **Ejercicio Asignado:** N.º 31 — ReservaHotel
-- **Entidades:** `Usuario` (Común obligatoria) y `ReservaHotel` (Específica asignada)
-- **Servidor Web:** Apache Tomcat 9 (`javax.servlet.*`)
-- **Base de Datos:** MySQL / MariaDB (XAMPP)
+- Asignatura: Desarrollo Web — Unidad 1
+- Ejercicio asignado: N.º 31 — ReservaHotel
+- Entidades: Usuario (obligatoria) y ReservaHotel (asignada)
+- Servidor: Apache Tomcat 9
+- Base de datos: MySQL
 
----
+## Estructura del proyecto
 
-## 🏛️ Arquitectura del Proyecto
-
-El proyecto sigue estrictamente el patrón arquitectónico guiado en clase:
-
-```
 src/java/reservahotel/
 ├── modelo/
-│   ├── Usuario.java              (Entidad de usuario: id, clave, nombre, rol, email)
-│   ├── ReservaHotel.java         (Entidad de reserva hotelera: 17 atributos)
-│   ├── ConexionBaseDatos.java    (Gestor de conexión JDBC y PreparedStatements)
-│   ├── CRUDUsuario.java          (Operaciones CRUD, inicio de sesión, reportes y recuperación)
-│   ├── CRUDReservaHotel.java     (Operaciones CRUD y reportes de reservas)
-│   └── ServicioEmail.java        (Gestor de notificaciones por correo vía SMTP/javax.mail)
+│ ├── Usuario.java
+│ ├── ReservaHotel.java
+│ ├── ConexionBaseDatos.java -> maneja la conexión JDBC
+│ ├── CRUDUsuario.java -> CRUD, login y reportes de Usuario
+│ ├── CRUDReservaHotel.java -> CRUD y reportes de ReservaHotel
+│ └── ServicioEmail.java -> envío de correo para recuperación de clave
 └── controladores/
-    ├── ServletUsuario.java       (Controlador de acciones para Usuario)
-    └── ServletReservaHotel.java  (Controlador de acciones para ReservaHotel)
-```
+├── ServletUsuario.java
+└── ServletReservaHotel.java
 
-### Rutas y Vistas JSP (`web/`)
-- `index.jsp`: Menú principal protegido con guard de sesión.
-- `mensaje.jsp`: Vista genérica para notificaciones y mensajes de error.
-- `usuario/`: `login.jsp`, `agregar.jsp`, `buscar.jsp`, `modificar.jsp`, `eliminar.jsp`, `listar.jsp`, `recuperar.jsp`.
-- `reservahotel/`: `agregar.jsp`, `buscar.jsp`, `modificar.jsp`, `eliminar.jsp`, `listar.jsp`.
 
----
+En `web/` están las vistas JSP, organizadas en `usuario/` y `reservahotel/`, cada una con `agregar.jsp`, `buscar.jsp`, `modificar.jsp`, `eliminar.jsp` y `listar.jsp`. También está `login.jsp`, `recuperar.jsp`, `index.jsp` (menú principal, protegido por sesión) y `mensaje.jsp` (para mostrar mensajes de error/éxito).
 
-## 🗄️ Esquema de Base de Datos (`reservahotel_db`)
+## Base de datos
+
+El script completo de creación de la base de datos (tablas + datos de prueba) está en `script_creacion_bd.sql`, en la raíz del proyecto.
+
+Resumen del esquema:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS reservahotel_db;
-USE reservahotel_db;
-
 CREATE TABLE usuario (
     id_usuario   INT AUTO_INCREMENT PRIMARY KEY,
     clave        VARCHAR(255) NOT NULL,
@@ -72,48 +62,62 @@ CREATE TABLE reserva_hotel (
     empleado_atiende_id INT NOT NULL,
     empleado_despide_id INT NULL,
     descripcion         VARCHAR(500),
-    CONSTRAINT fk_reserva_empleado_atiende FOREIGN KEY (empleado_atiende_id) REFERENCES usuario(id_usuario),
-    CONSTRAINT fk_reserva_empleado_despide FOREIGN KEY (empleado_despide_id) REFERENCES usuario(id_usuario)
+    FOREIGN KEY (empleado_atiende_id) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (empleado_despide_id) REFERENCES usuario(id_usuario)
 );
 ```
 
-### Datos de Prueba (Usuarios)
+Usuarios de prueba:
 
-| ID | Clave | Nombre | Rol | Email |
-|---|---|---|---|---|
-| 15 | admin123 | Isaac Administrador | admin | admin@reservahotel.com |
-| 16 | empleado123 | Laura Gómez | empleado | laura@reservahotel.com |
-| 17 | empleado456 | Carlos Pérez | empleado | carlos@reservahotel.com |
+| Email | Clave | Rol |
+|---|---|---|
+| admin@reservahotel.com | admin123 | admin |
+| laura@reservahotel.com | empleado123 | empleado |
+| carlos@reservahotel.com | empleado456 | empleado |
 
----
+## Reportes parametrizados
 
-## 📊 Reportes Parametrizados Implementados
+- Usuario: por rol, y por nombre (búsqueda parcial con LIKE)
+- ReservaHotel: por ciudad, y por empleado + rango de fechas
 
-Se incorporaron **4 reportes parametrizados** (2 por cada entidad) para cumplir con las exigencias del taller:
+## Otras funcionalidades
 
-1. **Reservas por Ciudad:** Filtra reservas según la ciudad especificada por el usuario.
-2. **Reservas por Empleado y Rango de Fechas:** Lista reservas atendidas por un empleado específico dentro de una ventana de fechas (`fecha_inicio BETWEEN ? AND ?`).
-3. **Usuarios por Rol:** Filtra usuarios según su rol (`admin` o `empleado`).
-4. **Usuarios por Nombre:** Búsqueda parcial de usuarios utilizando coincidencia `LIKE %nombre%`.
+- Recuperación de contraseña por correo (genera una clave temporal y la envía por email)
+- Protección de rutas: si no hay sesión activa, redirige al login
+- Los `ResultSet` se crean como `TYPE_SCROLL_INSENSITIVE` / `CONCUR_READ_ONLY`, necesario para poder usar `.last()` / `.beforeFirst()` al armar los listados
 
----
+## Cómo correrlo en local
 
-## 🔑 Funcionalidades Adicionales
+1. Clonar el repo:
 
-- **Recuperación de Contraseña:** Generación automática de clave temporal y envío por correo mediante `ServicioEmail` / `javax.mail`.
-- **Protección de Rutas (Guard):** Verificación de sesión activa en `index.jsp` y las vistas hijas.
-- **Scrollable ResultSets:** PreparedStatements configurados con `TYPE_SCROLL_INSENSITIVE` y `CONCUR_READ_ONLY` para conteo dinámico de filas.
+git clone https://github.com/Isaac2000vr/reservahotel-servlets-jsp-.git
 
----
+2. Tener MySQL corriendo (yo uso XAMPP).
+3. Crear la base ejecutando `script_creacion_bd.sql`.
+4. Abrir el proyecto en NetBeans, Clean and Build, y correrlo con Apache Tomcat 9.
+5. Entrar a `http://localhost:8080/reservahotel-servlets-jsp/`
 
-## 🚀 Instrucciones de Ejecución
+Por defecto, si no hay variables de entorno configuradas, la app se conecta a `localhost:3306` con usuario `root` sin contraseña (la config típica de XAMPP).
 
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/Isaac2000vr/reservahotel-servlets-jsp-.git
-   ```
-2. Iniciar el servicio **MySQL** en XAMPP.
-3. Crear la base de datos `reservahotel_db` e importar el esquema anterior.
-4. Abrir el proyecto en **NetBeans IDE** (versión 12 o superior).
-5. Realizar **Clean and Build** y presionar **Run** con **Apache Tomcat 9**.
-6. Acceder en el navegador a `http://localhost:8080/reservahotel-servlets-jsp/` (o el puerto configurado).
+## Despliegue
+
+La app está desplegada usando Docker:
+
+- **App:** Render (servicio web basado en Docker, con Tomcat 9 corriendo el `.war`)
+- **Base de datos:** Clever Cloud (addon de MySQL)
+
+URL: https://reservahotel-servlets-jsp.onrender.com/
+
+La conexión a la base de datos en producción se configura con variables de entorno (en vez de tenerlas escritas en el código), leídas en `ConexionBaseDatos.java`:
+
+| Variable | Descripción |
+|---|---|
+| `DB_HOST` | Host del servidor MySQL |
+| `DB_PORT` | Puerto (normalmente 3306) |
+| `DB_USER` | Usuario de la base de datos |
+| `DB_PASSWORD` | Contraseña |
+| `DB_NAME` | Nombre de la base de datos |
+
+Si no se define ninguna, usa los valores de desarrollo local por defecto (localhost/root/sin clave).
+
+**Nota:** el plan gratuito de Render "duerme" el servicio tras un rato sin tráfico, así que la primera vez que se abre el enlace después de estar inactivo puede tardar unos 30-60 segundos en cargar.
