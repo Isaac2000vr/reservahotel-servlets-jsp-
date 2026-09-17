@@ -29,7 +29,7 @@ public class ConexionBaseDatos {
     // constructores
     public ConexionBaseDatos() throws Exception {
         url = url + nombreIPServidorBD + ":" + puertoServidorBD + "/" + nombreBD
-                + "?useSSL=false&serverTimezone=UTC";
+                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
         this.conectar();
     }
 
